@@ -1,0 +1,7 @@
+.venv/
+.state.json
+.config.local.json
+__pycache__/
+*.pyc
+*.log
+debug/

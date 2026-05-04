@@ -1,0 +1,2 @@
+# Pure stdlib — no third-party deps required.
+# (zoneinfo is in the stdlib since Python 3.9.)

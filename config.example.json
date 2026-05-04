@@ -1,0 +1,19 @@
+{
+  "service": {
+    "label": "__REPLACE_ME__",
+    "service_ids": ["__REPLACE_ME__"],
+    "resource_ids": ["__REPLACE_ME__"],
+    "booking_url_template": "https://example.com/{id}"
+  },
+  "targets": [
+    {"id": "__REPLACE_ME__", "name": "Target 1"}
+  ],
+  "window_days": 14,
+  "max_slots_per_target": 20,
+  "timezone": "UTC",
+  "poll_interval_seconds": 900,
+  "notifications": {
+    "macos": false,
+    "ntfy_topic_env": "NTFY_TOPIC"
+  }
+}
