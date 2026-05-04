@@ -75,8 +75,11 @@ def notify_available(
     enabled_macos: bool = True,
     enabled_ntfy: bool = True,
     click_url: str | None = None,
-) -> None:
+) -> list[str]:
     """Send a high-priority push when new dates open up.
+
+    Returns a list of channel names that actually fired (e.g.
+    ["macos", "ntfy"]) — empty list if nothing was attempted.
 
     The body contains target name and dates — these go to the user's
     phone via ntfy.sh (private). They are NOT printed to logs by the
@@ -90,10 +93,14 @@ def notify_available(
         lines.append(f"Book: {click_url}")
     body = "\n".join(lines)
 
+    fired: list[str] = []
     if enabled_macos:
         _macos_notify(title, body)
+        fired.append("macos")
     if enabled_ntfy:
         _ntfy_post(title, body, priority="high", tags="bell", click_url=click_url)
+        fired.append("ntfy")
+    return fired
 
 
 def notify_error(

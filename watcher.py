@@ -172,7 +172,7 @@ def _do_one_pass(cfg: dict) -> tuple[int, int]:
             continue
         try:
             click_url = booking_url_template.format(id=r.target.id) if booking_url_template else None
-            notify_available(
+            fired = notify_available(
                 target_name=r.target.name,
                 newly_open=newly,
                 all_open=sorted(cur_set),
@@ -181,7 +181,8 @@ def _do_one_pass(cfg: dict) -> tuple[int, int]:
                 click_url=click_url,
             )
             new_hits += 1
-            print(f"  -> notified target {idx} ({len(newly)} new date(s))")
+            channels = ",".join(fired) if fired else "no channels enabled!"
+            print(f"  -> target {idx}: {len(newly)} new date(s) [{channels}]")
         except Exception as e:
             print(f"  -> notify failed target {idx} ({type(e).__name__})")
             new_state[key] = sorted(cur_set - set(newly))  # retry next pass
