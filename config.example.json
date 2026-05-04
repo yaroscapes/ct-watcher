@@ -1,12 +1,16 @@
 {
   "service": {
     "label": "__REPLACE_ME__",
-    "service_ids": ["__REPLACE_ME__"],
-    "resource_ids": ["__REPLACE_ME__"],
+    "shared_service_ids": ["__REPLACE_ME_classifier_id__"],
+    "resource_ids": ["__REPLACE_ME_resource_id__"],
     "booking_url_template": "https://example.com/{id}"
   },
   "targets": [
-    {"id": "__REPLACE_ME__", "name": "Target 1"}
+    {
+      "id": "__REPLACE_ME_location_id__",
+      "name": "Target 1",
+      "service_ids": ["__REPLACE_ME_per_target_service_id__"]
+    }
   ],
   "window_days": 14,
   "max_slots_per_target": 20,

@@ -39,15 +39,23 @@ class Target:
     """One opaque booking location to monitor.
 
     `id` is the Waitwhile location identifier — opaque to the watcher.
-    `name` is a display string used only in push notifications (which
-    are sent to the user's phone, not to the public CI log).
+    `name` is a display string used only in push notifications.
+    `service_ids` are PER-TARGET service identifiers (each Waitwhile
+    location has its own service catalogue with distinct IDs even for
+    the same-named service). The watcher concatenates these with the
+    shared classifier IDs from the global service block.
     """
     id: str
     name: str
+    service_ids: tuple[str, ...] = ()
 
     @classmethod
     def from_dict(cls, d: dict) -> "Target":
-        return cls(id=str(d["id"]), name=str(d["name"]))
+        return cls(
+            id=str(d["id"]),
+            name=str(d["name"]),
+            service_ids=tuple(d.get("service_ids") or ()),
+        )
 
 
 @dataclass
@@ -114,15 +122,25 @@ def check_target(
     window_days: int,
     max_slots: int,
     resource_ids: list[str],
-    service_ids: list[str],
+    shared_service_ids: list[str],
     timezone: _dt.tzinfo | None = None,
 ) -> TargetResult:
-    """Hit the slots endpoint for one target. Returns dates with real slots."""
+    """Hit the slots endpoint for one target. Returns dates with real slots.
+
+    The full `serviceIds` query parameter is the union of `shared_service_ids`
+    (e.g. the vehicle classifier, same across all locations) and the
+    target's own `service_ids` (e.g. the per-location service id of the
+    actual service we're monitoring).
+    """
     if timezone is None:
         timezone = _dt.timezone.utc
     now = _dt.datetime.now(tz=timezone)
     from_str = now.strftime("%Y-%m-%dT%H:%M")
     to_str = (now + _dt.timedelta(days=window_days)).strftime("%Y-%m-%dT%H:%M")
+
+    full_service_ids = list(shared_service_ids) + list(target.service_ids)
+    if not full_service_ids:
+        return TargetResult(target, error="missing_service_ids")
 
     url = _build_url(
         target.id,
@@ -130,7 +148,7 @@ def check_target(
         to_date=to_str,
         max_slots=max_slots,
         resource_ids=resource_ids,
-        service_ids=service_ids,
+        service_ids=full_service_ids,
     )
 
     try:

@@ -121,7 +121,13 @@ def _do_one_pass(cfg: dict) -> tuple[int, int]:
     except Exception:
         tz = _dt.timezone.utc
     service_block = cfg.get("service") or {}
-    service_ids = list(service_block.get("service_ids") or [])
+    # Shared across targets: the vehicle classifier (and any other
+    # globally-applicable serviceIds the API expects).
+    shared_service_ids = list(
+        service_block.get("shared_service_ids")
+        or service_block.get("service_ids")  # legacy key
+        or []
+    )
     resource_ids = list(service_block.get("resource_ids") or [])
     booking_url_template = service_block.get("booking_url_template", "")
 
@@ -135,7 +141,7 @@ def _do_one_pass(cfg: dict) -> tuple[int, int]:
             window_days=window_days,
             max_slots=max_slots,
             resource_ids=resource_ids,
-            service_ids=service_ids,
+            shared_service_ids=shared_service_ids,
             timezone=tz,
         )
         _print_result(i, r)
