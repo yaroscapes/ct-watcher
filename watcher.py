@@ -181,7 +181,8 @@ def _do_one_pass(cfg: dict) -> tuple[int, int]:
             new_state[key] = sorted(cur_set - set(newly))  # retry next pass
 
     has_errors = bool(error_indices)
-    if has_errors and not state["had_errors"]:
+    notify_errors = bool((cfg.get("notifications") or {}).get("errors", False))
+    if has_errors and notify_errors and not state["had_errors"]:
         try:
             notify_error(
                 f"{len(error_indices)} target(s) failed: " + ", ".join(f"#{i}" for i in error_indices),

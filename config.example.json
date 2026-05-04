@@ -14,6 +14,7 @@
   "poll_interval_seconds": 900,
   "notifications": {
     "macos": false,
+    "errors": false,
     "ntfy_topic_env": "NTFY_TOPIC"
   }
 }
