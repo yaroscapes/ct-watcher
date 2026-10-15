@@ -13,6 +13,8 @@
     }
   ],
   "window_days": 14,
+  "window_from": null,
+  "window_to": null,
   "max_slots_per_target": 20,
   "timezone": "UTC",
   "poll_interval_seconds": 900,

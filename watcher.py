@@ -70,6 +70,11 @@ def _load_config() -> dict:
             f"config from {source} contains {PLACEHOLDER_MARKER}; "
             f"set CONFIG_JSON, CONFIG_FILE, or {LOCAL_PATH.name}"
         )
+    # A half-set or empty window silently yields "no slots" forever.
+    if bool(cfg.get("window_from")) != bool(cfg.get("window_to")):
+        raise RuntimeError("set both window_from and window_to, or neither")
+    if not cfg.get("window_from") and int(cfg.get("window_days") or 0) <= 0:
+        raise RuntimeError("set window_days > 0, or window_from + window_to")
     return cfg
 
 
@@ -113,7 +118,9 @@ def _print_result(idx: int, r: TargetResult) -> None:
 
 def _do_one_pass(cfg: dict) -> tuple[int, int]:
     targets = [Target.from_dict(d) for d in (cfg.get("targets") or cfg.get("warehouses") or [])]
-    window_days = int(cfg["window_days"])
+    window_days = int(cfg.get("window_days") or 0)
+    window_from = cfg.get("window_from") or None
+    window_to = cfg.get("window_to") or None
     max_slots = int(cfg.get("max_slots_per_target", cfg.get("max_slots_per_warehouse", 20)))
     tz_name = cfg.get("timezone") or "UTC"
     try:
@@ -131,8 +138,12 @@ def _do_one_pass(cfg: dict) -> tuple[int, int]:
     resource_ids = list(service_block.get("resource_ids") or [])
     booking_url_template = service_block.get("booking_url_template", "")
 
+    if window_from and window_to:
+        window_label = f"{window_from[:10]}..{window_to[:10]}"
+    else:
+        window_label = f"{window_days}d"
     print(f"[{_dt.datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')}] checking "
-          f"{len(targets)} target(s), window={window_days}d")
+          f"{len(targets)} target(s), window={window_label}")
 
     results: list[tuple[int, TargetResult]] = []
     for i, t in enumerate(targets, start=1):
@@ -143,6 +154,8 @@ def _do_one_pass(cfg: dict) -> tuple[int, int]:
             resource_ids=resource_ids,
             shared_service_ids=shared_service_ids,
             timezone=tz,
+            window_from=window_from,
+            window_to=window_to,
         )
         _print_result(i, r)
         results.append((i, r))

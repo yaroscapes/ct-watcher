@@ -124,6 +124,8 @@ def check_target(
     resource_ids: list[str],
     shared_service_ids: list[str],
     timezone: _dt.tzinfo | None = None,
+    window_from: str | None = None,
+    window_to: str | None = None,
 ) -> TargetResult:
     """Hit the slots endpoint for one target. Returns dates with real slots.
 
@@ -131,12 +133,23 @@ def check_target(
     (e.g. the vehicle classifier, same across all locations) and the
     target's own `service_ids` (e.g. the per-location service id of the
     actual service we're monitoring).
+
+    Date window:
+      - If `window_from` and `window_to` are both provided (ISO
+        `YYYY-MM-DDTHH:MM` strings), those are used verbatim — fixed
+        calendar window.
+      - Otherwise it falls back to a rolling `window_days`-day window
+        starting at now (in the given timezone).
     """
     if timezone is None:
         timezone = _dt.timezone.utc
-    now = _dt.datetime.now(tz=timezone)
-    from_str = now.strftime("%Y-%m-%dT%H:%M")
-    to_str = (now + _dt.timedelta(days=window_days)).strftime("%Y-%m-%dT%H:%M")
+    if window_from and window_to:
+        from_str = window_from
+        to_str = window_to
+    else:
+        now = _dt.datetime.now(tz=timezone)
+        from_str = now.strftime("%Y-%m-%dT%H:%M")
+        to_str = (now + _dt.timedelta(days=window_days)).strftime("%Y-%m-%dT%H:%M")
 
     full_service_ids = list(shared_service_ids) + list(target.service_ids)
     if not full_service_ids:
