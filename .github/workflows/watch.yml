@@ -26,16 +26,26 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Restore state cache
-        uses: actions/cache@v4
-        with:
-          path: .state.json
-          key: state-${{ github.run_id }}
-          restore-keys: |
-            state-
+      # watcher.py is paused; restore its "Restore state cache" + "Run"
+      # steps from git history to bring it back.
 
-      - name: Run
+      - name: Restore spa state
+        uses: actions/cache/restore@v4
+        with:
+          path: .spa_state.json
+          key: spa-state-${{ github.run_id }}
+          restore-keys: |
+            spa-state-
+
+      - name: Run spa watcher
         env:
-          CONFIG_JSON: ${{ secrets.CONFIG_JSON }}
+          SPA_CONFIG_JSON: ${{ secrets.SPA_CONFIG_JSON }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
-        run: python watcher.py
+        run: python spa_watcher.py
+
+      - name: Save spa state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .spa_state.json
+          key: spa-state-${{ github.run_id }}

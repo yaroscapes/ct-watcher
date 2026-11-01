@@ -5,3 +5,6 @@ __pycache__/
 *.pyc
 *.log
 debug/
+CLAUDE.md
+.spa.config.local.json
+.spa_state.json
