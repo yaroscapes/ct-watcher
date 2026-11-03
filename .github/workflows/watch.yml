@@ -49,3 +49,27 @@ jobs:
         with:
           path: .spa_state.json
           key: spa-state-${{ github.run_id }}
+
+      # Independent of the spa watcher: runs even if a step above failed.
+      - name: Restore session state
+        if: ${{ !cancelled() }}
+        uses: actions/cache/restore@v4
+        with:
+          path: .session_state.json
+          key: session-state-${{ github.run_id }}
+          restore-keys: |
+            session-state-
+
+      - name: Run session watcher
+        if: ${{ !cancelled() }}
+        env:
+          SESSION_CONFIG_JSON: ${{ secrets.SESSION_CONFIG_JSON }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python session_watcher.py
+
+      - name: Save session state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .session_state.json
+          key: session-state-${{ github.run_id }}

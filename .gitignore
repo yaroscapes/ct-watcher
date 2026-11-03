@@ -8,3 +8,5 @@ debug/
 CLAUDE.md
 .spa.config.local.json
 .spa_state.json
+.session.config.local.json
+.session_state.json
