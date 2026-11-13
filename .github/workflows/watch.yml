@@ -26,9 +26,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      # watcher.py is paused; restore its "Restore state cache" + "Run"
-      # steps from git history to bring it back.
-
       - name: Restore spa state
         uses: actions/cache/restore@v4
         with:
@@ -73,3 +70,27 @@ jobs:
         with:
           path: .session_state.json
           key: session-state-${{ github.run_id }}
+
+      # Also independent of the steps above.
+      - name: Restore state
+        if: ${{ !cancelled() }}
+        uses: actions/cache/restore@v4
+        with:
+          path: .state.json
+          key: state-${{ github.run_id }}
+          restore-keys: |
+            state-
+
+      - name: Run watcher
+        if: ${{ !cancelled() }}
+        env:
+          CONFIG_JSON: ${{ secrets.CONFIG_JSON }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python watcher.py
+
+      - name: Save state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .state.json
+          key: state-${{ github.run_id }}
